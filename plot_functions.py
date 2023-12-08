@@ -6,7 +6,6 @@ from PIL import Image
 import requests
 
 
-
 def create_full_interactions_df(interactions_df, users_df, items_df):
     full_interactions_df = pd.merge(interactions_df, users_df, on="user_id", how="left")
     full_interactions_df = pd.merge(
@@ -40,7 +39,7 @@ def plot_map(full_interactions_df, agg_function):
             hover_name="Country Code",
             projection="natural earth",
             locationmode="ISO-3",
-            color_continuous_scale='PuBu'
+            color_continuous_scale="PuBu",
         )
 
     else:
@@ -51,7 +50,7 @@ def plot_map(full_interactions_df, agg_function):
             hover_name="Country Code",
             projection="natural earth",
             locationmode="ISO-3",
-            color_continuous_scale='PuBu'
+            color_continuous_scale="PuBu",
         )
     return fig
 
@@ -71,7 +70,7 @@ def popular_books(df, n=10, age_filter=None, country_filter=None):
     popularBooks = rating_count.merge(rating_average, on="Title")
 
     if popularBooks.shape[0] == 0:
-        return 'error'
+        return "error"
 
     def weighted_rate(x):
         v = x["NumberOfVotes"]
@@ -85,11 +84,30 @@ def popular_books(df, n=10, age_filter=None, country_filter=None):
     # popularBooks = popularBooks[popularBooks["NumberOfVotes"] >= 50]
     popularBooks["Popularity"] = popularBooks.apply(weighted_rate, axis=1)
     popularBooks = popularBooks.sort_values(by="Popularity", ascending=False)
-    popularBooks = popularBooks.drop_duplicates(subset=['Title'], keep='first')
-    popularBooks = pd.merge(popularBooks, df.drop_duplicates(subset=['Title', 'Author'], keep='first')[['Title', 'Author', 'Publication Year', 'Publisher', 'image_url']], on='Title', how='left')
+    popularBooks = popularBooks.drop_duplicates(subset=["Title"], keep="first")
+    popularBooks = pd.merge(
+        popularBooks,
+        df.drop_duplicates(subset=["Title", "Author"], keep="first")[
+            ["Title", "Author", "Publication Year", "Publisher", "image_url"]
+        ],
+        on="Title",
+        how="left",
+    )
 
     return (
-        popularBooks[["Title", "NumberOfVotes", "AverageRatings", "Popularity", 'Title', 'Author', 'Publication Year', 'Publisher', 'image_url']]
+        popularBooks[
+            [
+                "Title",
+                "NumberOfVotes",
+                "AverageRatings",
+                "Popularity",
+                "Title",
+                "Author",
+                "Publication Year",
+                "Publisher",
+                "image_url",
+            ]
+        ]
         .reset_index(drop=True)
         .head(n)
     )
@@ -97,8 +115,8 @@ def popular_books(df, n=10, age_filter=None, country_filter=None):
 
 def show_book_cover(url):
     headers = {
-    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36"
     }
 
-    img = Image.open(requests.get(url,stream=True, headers=headers).raw)
+    img = Image.open(requests.get(url, stream=True, headers=headers).raw)
     return img

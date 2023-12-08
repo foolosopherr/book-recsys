@@ -63,28 +63,31 @@ def preprocess_users(users_df):
     ] = "Country_Unknown"
 
     users_df["Country"].replace("L`Italia", "Italy", inplace=True)
-    users_df['Country'].replace('USA', 'United States', inplace=True)
-    users_df['Country'].replace('Iran', 'Iran, Islamic Republic of', inplace=True)
-    users_df['Country'].replace('Taiwan', 'Taiwan, Province of China', inplace=True)
-    users_df['Country'].replace('Trinidad And Tobago', 'Trinidad and Tobago', inplace=True)
-    users_df['Country'].replace('South Korea', 'Korea, Republic of', inplace=True)
-    users_df['Country'].replace('Czech Republic', 'Czechia', inplace=True)
-    users_df['Country'].replace('UAE', 'United Arab Emirates', inplace=True)
-    users_df['Country'].replace('Euskal Herria', 'Country_Unknown', inplace=True)
+    users_df["Country"].replace("USA", "United States", inplace=True)
+    users_df["Country"].replace("Iran", "Iran, Islamic Republic of", inplace=True)
+    users_df["Country"].replace("Taiwan", "Taiwan, Province of China", inplace=True)
+    users_df["Country"].replace(
+        "Trinidad And Tobago", "Trinidad and Tobago", inplace=True
+    )
+    users_df["Country"].replace("South Korea", "Korea, Republic of", inplace=True)
+    users_df["Country"].replace("Czech Republic", "Czechia", inplace=True)
+    users_df["Country"].replace("UAE", "United Arab Emirates", inplace=True)
+    users_df["Country"].replace("Euskal Herria", "Country_Unknown", inplace=True)
 
-    users_df['Country'].replace('Yugoslavia', 'Country_Unknown', inplace=True)
-    users_df['Country'].replace('Euskal Herria', 'Country_Unknown', inplace=True)
-    users_df['Country'].replace('Burma', 'Myanmar', inplace=True)
+    users_df["Country"].replace("Yugoslavia", "Country_Unknown", inplace=True)
+    users_df["Country"].replace("Euskal Herria", "Country_Unknown", inplace=True)
+    users_df["Country"].replace("Burma", "Myanmar", inplace=True)
 
-    users_df['Country'].replace('Venezuela', 'Venezuela, Bolivarian Republic of', inplace=True)
-    users_df['Country'].replace('Macedonia', 'Montenegro', inplace=True)
-    users_df['Country'].replace('Russia', 'Russian Federation', inplace=True)
-    users_df['Country'].replace('Caribbean Sea', 'Country_Unknown', inplace=True)
+    users_df["Country"].replace(
+        "Venezuela", "Venezuela, Bolivarian Republic of", inplace=True
+    )
+    users_df["Country"].replace("Macedonia", "Montenegro", inplace=True)
+    users_df["Country"].replace("Russia", "Russian Federation", inplace=True)
+    users_df["Country"].replace("Caribbean Sea", "Country_Unknown", inplace=True)
 
+    users_df["Country"] = users_df["Country"].apply(lambda x: re.sub(r'"', "", x))
 
-    users_df['Country'] = users_df['Country'].apply(lambda x: re.sub(r'"', '', x))
-
-    users_df["Country"].replace('N/A', "Country_Unknown", inplace=True)
+    users_df["Country"].replace("N/A", "Country_Unknown", inplace=True)
 
     users_df["Country"].replace("", "Country_Unknown", inplace=True)
     users_df = users_df[["userID", "Age Category", "Country"]]
@@ -139,8 +142,15 @@ def preprocess_items(items_df):
     return items_df, books_urls
 
 
-def preprocess_interactions(interactions_df, items_df, users_df, books_urls, min_count_author, min_count_user_ints):
-    interactions_df.columns = ['user_id', 'item_id', 'rating']
+def preprocess_interactions(
+    interactions_df,
+    items_df,
+    users_df,
+    books_urls,
+    min_count_author,
+    min_count_user_ints,
+):
+    interactions_df.columns = ["user_id", "item_id", "rating"]
 
     authors_to_keep = items_df["Author"].value_counts()
     authors_to_keep = authors_to_keep[authors_to_keep >= min_count_author].index.values
@@ -170,13 +180,20 @@ def preprocess_interactions(interactions_df, items_df, users_df, books_urls, min
     return interactions_df, items_df, users_df, books_urls
 
 
-def preprocess_all(interactions_df, items_df, users_df, min_count_author, min_count_user_ints):
+def preprocess_all(
+    interactions_df, items_df, users_df, min_count_author, min_count_user_ints
+):
     users_df = preprocess_users(users_df)
     items_df, books_urls = preprocess_items(items_df)
     interactions_df, items_df, users_df, books_urls = preprocess_interactions(
-        interactions_df, items_df, users_df, books_urls, min_count_author, min_count_user_ints
+        interactions_df,
+        items_df,
+        users_df,
+        books_urls,
+        min_count_author,
+        min_count_user_ints,
     )
 
-    items_df = pd.merge(items_df, books_urls, on='item_id', how='left')
+    items_df = pd.merge(items_df, books_urls, on="item_id", how="left")
 
     return interactions_df, items_df, users_df

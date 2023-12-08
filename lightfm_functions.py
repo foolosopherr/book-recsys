@@ -4,6 +4,9 @@ from lightfm.data import Dataset
 from lightfm import LightFM
 from preprocessing import *
 import pickle
+from lightfm.cross_validation import random_train_test_split
+from lightfm.evaluation import auc_score, precision_at_k
+import itertools
 
 
 def get_clean_dataframes(path="data/"):
@@ -77,3 +80,82 @@ def get_recommendation(
     ]
 
     return already_rated_inds, recommended_inds
+
+
+def train_test_split_data(weights, test_size):
+    train_weights, test_weights = random_train_test_split(
+        weights, test_percentage=test_size, random_state=42
+    )
+
+    return train_weights, test_weights
+
+
+def sample_hyperparameters():
+    """
+    Yield possible hyperparameter choices
+    """
+
+    while True:
+        yield {
+            "no_components": np.random.randint(16, 128),
+            "learning_schedule": np.random.choice(["adagrad", "adadelta"]),
+            "loss": np.random.choice(["bpr", "warp"]),
+            "learning_rate": np.random.choice([0.01 * i for i in range(1, 21)]),
+            "max_sampled": np.random.randint(5, 15),
+            "num_epochs": np.random.randint(5, 20),
+            "random_state": [42],
+        }
+
+
+def hyperparameters_tuning(train, test, num_samples=50, num_threads=8, k=10):
+    for i, hyperparams in enumerate(
+        itertools.islice(sample_hyperparameters(), num_samples)
+    ):
+        num_epochs = hyperparams.pop("num_epochs")
+
+        print(f"Model #{i+1}:")
+        print()
+        print("Hyperparameters:", hyperparams)
+        print()
+
+        model = LightFM(**hyperparams)
+        model.fit(train, epochs=num_epochs, num_threads=num_threads)
+
+        auc_score_train = auc_score(
+            model,
+            train,
+            num_threads=num_threads,
+            check_intersections=False,
+        ).mean()
+
+        auc_score_test = auc_score(
+            model,
+            test,
+            train_interactions=train,
+            num_threads=num_threads,
+            check_intersections=False,
+        ).mean()
+
+        train_precision_at_10 = precision_at_k(
+            model,
+            train,
+            k=k,
+            num_threads=num_threads,
+            check_intersections=False,
+        ).mean()
+        test_precision_at_10 = precision_at_k(
+            model,
+            test,
+            train_interactions=train,
+            k=k,
+            num_threads=num_threads,
+            check_intersections=False,
+        ).mean()
+
+        print(f"Train AUC {auc_score_train:.5f}, Test AUC {auc_score_test:.5f}")
+        print(
+            f"Train Precision@10 {train_precision_at_10:.5f}, Test Precision@10 {test_precision_at_10:.5f}"
+        )
+        print()
+        print("=" * 40)
+        print()
