@@ -83,7 +83,7 @@ def get_all_data():
 
 def project_description_tab():
     st.markdown(
-        "## Проект студентов группы МПИ-22-1 Александра Петрова и Рашида Мейланова"
+        "## Проект студентов группы Александра Петрова"
     )
     st.markdown(
         "#### Ссылка на датасет https://www.kaggle.com/datasets/arashnic/book-recommendation-dataset/data"
